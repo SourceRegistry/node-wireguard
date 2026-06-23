@@ -2,6 +2,6 @@
 set -euo pipefail
 
 dir="$(dirname "$0")"
-"$dir/stages/build_env.sh"
-"$dir/stages/build_cpp.sh"
-"$dir/stages/build_ts.sh"
+bash "$dir/stages/build_env.sh"
+bash "$dir/stages/build_cpp.sh"
+bash "$dir/stages/build_ts.sh"

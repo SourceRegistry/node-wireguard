@@ -7,7 +7,7 @@ set -euo pipefail
 dir="$(dirname "$0")"
 root="$dir/../.."
 
-"$root/scripts/build/build.sh"
-"$dir/stages/package_native.sh"
+bash "$root/scripts/build/build.sh"
+bash "$dir/stages/package_native.sh"
 
 echo "package.sh: done. Run \`npm pack --dry-run\` to inspect what would be published."

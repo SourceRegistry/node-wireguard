@@ -1,9 +1,20 @@
 {
   "name": "@sourceregistry/node-wireguard",
   "version": "1.0.0",
-  "description": "Native N-API addon for managing WireGuard interfaces and peers via the Linux kernel netlink interface",
+  "description": "Native N-API addon for managing WireGuard interfaces and peers on Linux via kernel netlink, rtnetlink, and UAPI",
   "license": "Apache-2.0",
   "author": "ProjectSource V.O.F.",
+  "keywords": [
+    "wireguard",
+    "vpn",
+    "linux",
+    "netlink",
+    "rtnetlink",
+    "uapi",
+    "native-addon",
+    "napi",
+    "node-addon-api"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/SourceRegistry/node-wireguard.git"
@@ -14,7 +25,7 @@
     "linux"
   ],
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=22.0.0"
   },
   "publishConfig": {
     "access": "public"

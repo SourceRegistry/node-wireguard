@@ -1,0 +1,80 @@
+{
+  "name": "@sourceregistry/node-wireguard",
+  "version": "0.0.0",
+  "description": "Native N-API addon for managing WireGuard interfaces and peers via the Linux kernel netlink interface",
+  "license": "Apache-2.0",
+  "author": "ProjectSource V.O.F.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SourceRegistry/node-wireguard.git"
+  },
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "os": [
+    "linux"
+  ],
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "lib/**/*.js",
+    "lib/**/*.d.ts",
+    "binding.gyp",
+    "src",
+    "bin",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build:cpp": "node-gyp rebuild",
+    "build:ts": "tsc -p tsconfig.json",
+    "build": "npm run build:cpp && npm run build:ts",
+    "test": "node --require tsx/cjs --test tests/index.ts",
+    "setup": "bash scripts/setup/setup.sh",
+    "package": "bash scripts/package/package.sh",
+    "prepublishOnly": "npm run package"
+  },
+  "dependencies": {
+    "node-addon-api": "^8.8.0"
+  },
+  "devDependencies": {
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/commit-analyzer": "^13.0.1",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/npm": "^13.1.5",
+    "@semantic-release/release-notes-generator": "^14.1.0",
+    "@types/node": "^26.0.0",
+    "node-gyp": "^12.4.0",
+    "semantic-release": "^24.2.0",
+    "tsx": "^4.19.2",
+    "typescript": "^6.0.3"
+  },
+  "gypfile": true,
+  "release": {
+    "branches": [
+      "main",
+      {
+        "name": "alpha",
+        "prerelease": true
+      }
+    ],
+    "plugins": [
+      "@semantic-release/commit-analyzer",
+      "@semantic-release/release-notes-generator",
+      "@semantic-release/changelog",
+      "@semantic-release/npm",
+      [
+        "@semantic-release/git",
+        {
+          "assets": [
+            "package.json",
+            "CHANGELOG.md"
+          ],
+          "message": "@sourceregistry/node-wireguard(release): 🚀 v${nextRelease.version}\n\n${nextRelease.notes}"
+        }
+      ]
+    ]
+  }
+}

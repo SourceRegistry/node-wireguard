@@ -1,0 +1,22 @@
+{
+    "name": "node-wireguard",
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    "capAdd": ["NET_ADMIN"],
+    // If createDevice()/deleteDevice()/configureDevice() fail with EPERM, the
+    // container engine's capability set is too tight for the genetlink/rtnetlink
+    // ops involved - uncomment below as a fallback (works on Docker Desktop/WSL2;
+    // not all CI runners allow privileged containers).
+    // "privileged": true,
+    "remoteUser": "root",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-vscode.cpptools",
+                "dbaeumer.vscode-eslint"
+            ]
+        }
+    },
+    "postCreateCommand": "npm install"
+}

@@ -15,7 +15,7 @@
       ],
       "include_dirs": [
         "<!@(node -p \"require('node-addon-api').include\")",
-        "<!@(pkg-config --cflags-only-I libmnl libsodium | sed 's/-I//g')"
+        "<!@(pkg-config --cflags-only-I libmnl libcrypto | sed 's/-I//g')"
       ],
       "dependencies": [
         "<!(node -p \"require('node-addon-api').gyp\")"
@@ -29,7 +29,7 @@
           "OS=='linux'",
           {
             "libraries": [
-              "<!@(pkg-config --libs libmnl libsodium)"
+              "<!@(pkg-config --libs libmnl libcrypto)"
             ]
           }
         ],

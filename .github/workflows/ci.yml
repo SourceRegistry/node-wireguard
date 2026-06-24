@@ -27,7 +27,7 @@ jobs:
       - name: Install native build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential pkg-config libmnl-dev libsodium-dev
+          sudo apt-get install -y build-essential pkg-config libmnl-dev libssl-dev
 
       - name: Install npm dependencies + build native addon
         run: npm ci
@@ -55,7 +55,7 @@ jobs:
       - name: Install native build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential pkg-config libmnl-dev libsodium-dev
+          sudo apt-get install -y build-essential pkg-config libmnl-dev libssl-dev
       - run: npm ci
       - name: Stage prebuild and verify npm pack contents
         run: |
@@ -93,7 +93,7 @@ jobs:
         # and stages bin/<triplet>/node-wireguard.node into the published tarball.
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential pkg-config libmnl-dev libsodium-dev
+          sudo apt-get install -y build-essential pkg-config libmnl-dev libssl-dev
 
       - name: Install dependencies
         run: npm install

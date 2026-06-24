@@ -23,6 +23,22 @@ describe('keys', () => {
     it('derives different public keys for different private keys', () => {
         assert.notStrictEqual(publicKey(generatePrivateKey()), publicKey(generatePrivateKey()));
     });
+
+    // RFC 7748 section 6.1 X25519 test vector (Alice's keypair), encoded as
+    // wg base64 instead of the RFC's hex - pins the OpenSSL-backed
+    // scalarmult/encoding against a known-answer, not just round-trip.
+    it('matches the RFC 7748 X25519 test vector', () => {
+        const privHex = '77076d0a7318a57d3c16c17251b26645df4c2f87ebc0992ab177fba51db92c2a';
+        const pubHex = '8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a';
+        const priv = Buffer.from(privHex, 'hex').toString('base64');
+        const expectedPub = Buffer.from(pubHex, 'hex').toString('base64');
+        assert.strictEqual(publicKey(priv), expectedPub);
+    });
+
+    it('rejects malformed base64 keys instead of silently truncating', () => {
+        assert.throws(() => publicKey('not-valid-base64-key=='));
+        assert.throws(() => publicKey(Buffer.alloc(16).toString('base64'))); // too short
+    });
 });
 
 const canTestKernel = process.platform === 'linux' && process.getuid?.() === 0 && fs.existsSync('/sys/module/wireguard');

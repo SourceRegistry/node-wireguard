@@ -5,7 +5,7 @@ RUN apt-get update \
         build-essential \
         pkg-config \
         libmnl-dev \
-        libsodium-dev \
+        libssl-dev \
         wireguard-tools \
         iproute2 \
         git \

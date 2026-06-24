@@ -2,7 +2,6 @@
 #include "crypto/Key.h"
 
 #include <napi.h>
-#include <sodium.h>
 #include <stdexcept>
 
 namespace {
@@ -33,11 +32,6 @@ Napi::Value PublicKey(const Napi::CallbackInfo &info) {
 } // namespace
 
 Napi::Object Init(Napi::Env env, Napi::Object exports) {
-    if (sodium_init() < 0) {
-        Napi::Error::New(env, "libsodium initialization failed").ThrowAsJavaScriptException();
-        return exports;
-    }
-
     exports.Set("generatePrivateKey", Napi::Function::New(env, GeneratePrivateKey));
     exports.Set("generatePresharedKey", Napi::Function::New(env, GeneratePresharedKey));
     exports.Set("publicKey", Napi::Function::New(env, PublicKey));

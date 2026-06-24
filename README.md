@@ -17,7 +17,7 @@ Built for [WireGuard](https://www.wireguard.com/), a registered trademark of Jas
 - **Device + peer configuration:** `configureDevice()` sets private key, listen port, firewall mark, and peers (add/update/remove, allowed-IPs, preshared key, endpoint, persistent keepalive). Mirrors wgtypes' "pointer-optional" semantics: omit a field to leave it unchanged, set it (even to `0`/`''`) to apply/clear it explicitly.
 - **Device + peer inspection:** `devices()` / `device(name)` return live status: peers, handshake times, rx/tx byte counters, allowed-IPs.
 - **Userspace (UAPI) backend fallback:** `devices()`/`device()`/`configureDevice()` automatically use the cross-platform UAPI socket (`/var/run/wireguard/<name>.sock`) for interfaces backed by a userspace implementation like `wireguard-go`, instead of kernel netlink, transparently (`device.type` reports which). Interface lifecycle (`createDevice`/`setUp`/`setAddress`/etc.) is unaffected - those are still plain rtnetlink and work the same either way, since wireguard-go creates a real kernel-visible TUN interface.
-- **Key utilities:** `generatePrivateKey()`, `generatePresharedKey()`, `publicKey()` via libsodium X25519, matching `wg genkey`/`wg genpsk`/`wg pubkey` output (base64, 32 bytes).
+- **Key utilities:** `generatePrivateKey()`, `generatePresharedKey()`, `publicKey()` via OpenSSL X25519, matching `wg genkey`/`wg genpsk`/`wg pubkey` output (base64, 32 bytes).
 - All blocking netlink syscalls run off the JS thread via `Napi::AsyncWorker`; every `WireGuardClient` method returns a `Promise`.
 
 ## Requirements
@@ -25,7 +25,8 @@ Built for [WireGuard](https://www.wireguard.com/), a registered trademark of Jas
 - Linux with the WireGuard kernel module/support loaded (`modprobe wireguard` or built-in).
 - Node.js 22 or newer. CI tests Node 22 for backward compatibility and Node 24 as the latest LTS line.
 - `CAP_NET_ADMIN` (typically: run as root) for `createDevice`/`deleteDevice`/`configureDevice`.
-- Build deps: `libmnl-dev`, `libsodium-dev`, `pkg-config`, a C++17 toolchain.
+- Build deps (only needed if no matching prebuild ships for your arch, see Packaging below): `libmnl-dev`, `libssl-dev`, `pkg-config`, a C++17 toolchain.
+- Runtime deps (always needed, even when using the shipped prebuild): `libmnl` and `libcrypto` (OpenSSL) shared libraries. Both are near-universally preinstalled on Linux (curl/ssh/apt depend on libcrypto) - if missing, install the equivalent of Debian/Ubuntu's `libmnl0`/`libssl3`. The addon dynamically links both; missing one fails with `ERR_DLOPEN_FAILED: <libname>.so.<N>: cannot open shared object file`.
 
 ## Install
 
@@ -89,7 +90,7 @@ A `.devcontainer` is included (Dockerfile + `devcontainer.json`, `capAdd: NET_AD
 
 `npm run package` (`scripts/package/package.sh`) builds the addon and stages the compiled `.node` into `bin/<arch-triplet>/` (currently `x86_64-linux-gnu`, `aarch64-linux-gnu`), where `lib/binding.ts` looks for a prebuild when installed from npm. If no matching prebuild is present (e.g. an unpublished triplet), `npm install`'s `gypfile`-triggered `node-gyp rebuild` compiles it locally instead, and the loader falls back to that build automatically.
 
-`.github/workflows/ci.yml` runs on push/PR: installs native deps (`libmnl-dev`/`libsodium-dev`), builds, typechecks, and runs the test suite as root with `modprobe wireguard` best-effort (kernel-backed tests self-skip if the module isn't available on the runner) - plus a separate job that stages a prebuild and runs `npm pack --dry-run` to catch packaging regressions.
+`.github/workflows/ci.yml` runs on push/PR: installs native deps (`libmnl-dev`/`libssl-dev`), builds, typechecks, and runs the test suite as root with `modprobe wireguard` best-effort (kernel-backed tests self-skip if the module isn't available on the runner) - plus a separate job that stages a prebuild and runs `npm pack --dry-run` to catch packaging regressions.
 
 ## Releasing
 

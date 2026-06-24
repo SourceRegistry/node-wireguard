@@ -1,6 +1,6 @@
 {
   "name": "@sourceregistry/node-wireguard",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Native N-API addon for managing WireGuard interfaces and peers on Linux via kernel netlink, rtnetlink, and UAPI",
   "license": "Apache-2.0",
   "author": "ProjectSource V.O.F.",

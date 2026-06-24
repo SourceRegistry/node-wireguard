@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/SourceRegistry/node-wireguard/compare/v1.0.1...v1.0.2) (2026-06-24)
+
+
+### Bug Fixes
+
+* skip native build when a bundled prebuild matches the platform ([d1c9b3e](https://github.com/SourceRegistry/node-wireguard/commit/d1c9b3e17d3d81fde7439479c34f2fc720b81d84))
+
 ## [1.0.1](https://github.com/SourceRegistry/node-wireguard/compare/v1.0.0...v1.0.1) (2026-06-23)
 
 

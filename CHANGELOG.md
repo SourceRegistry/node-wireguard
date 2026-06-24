@@ -1,3 +1,11 @@
+## [1.0.3](https://github.com/SourceRegistry/node-wireguard/compare/v1.0.2...v1.0.3) (2026-06-24)
+
+
+### Bug Fixes
+
+* fail install loud when prebuild's runtime libs are missing ([d4a8322](https://github.com/SourceRegistry/node-wireguard/commit/d4a8322a10a34792b3d7aad86112a1948e116ff3))
+* replace libsodium with OpenSSL for key crypto ([f3de9fa](https://github.com/SourceRegistry/node-wireguard/commit/f3de9faf57cdc0243f7fd8e1247e965d2b56805d))
+
 ## [1.0.2](https://github.com/SourceRegistry/node-wireguard/compare/v1.0.1...v1.0.2) (2026-06-24)
 
 

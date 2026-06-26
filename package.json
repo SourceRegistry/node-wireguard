@@ -34,13 +34,11 @@
     "lib/**/*.js",
     "lib/**/*.d.ts",
     "binding.gyp",
-    "scripts/install.js",
     "src",
     "bin",
     "LICENSE"
   ],
   "scripts": {
-    "install": "node scripts/install.js",
     "build:cpp": "node-gyp rebuild",
     "build:ts": "tsc -p tsconfig.json",
     "build": "npm run build:cpp && npm run build:ts",

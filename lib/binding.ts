@@ -40,10 +40,30 @@ if (is_package) {
 }
 
 if (!addonPath || !fs.existsSync(addonPath)) {
+    const hint = is_package
+        ? "Run `npm rebuild @sourceregistry/node-wireguard` from your project root, or use your " +
+          "application's built-in setup command if it provides one."
+        : "Run `npm run build` (development) or `npm run package` (to stage a prebuild) first.";
     throw new Error(
-        `node-wireguard: no native addon found at ${addonPath} (platform=${platform}, arch=${arch}). ` +
-            `Run \`npm run build\` (development) or \`npm run package\` (to stage a prebuild) first.`,
+        `node-wireguard: no native addon found at ${addonPath} (platform=${platform}, arch=${arch}). ${hint}`,
     );
 }
 
-export default require(addonPath)
+let addon: unknown;
+try {
+    addon = require(addonPath);
+} catch (err: any) {
+    if (err?.code === "ERR_DLOPEN_FAILED") {
+        throw new Error(
+            `node-wireguard: the native addon failed to load — a runtime shared library is missing.\n` +
+                `  Original error: ${err.message}\n\n` +
+                `Install the missing libraries (no compiler needed):\n` +
+                `  Debian/Ubuntu:  apt-get install -y libmnl0 libssl3\n` +
+                `  RHEL/Fedora:    dnf install -y libmnl openssl-libs\n` +
+                `  Alpine:         apk add libmnl openssl`,
+        );
+    }
+    throw err;
+}
+
+export default addon

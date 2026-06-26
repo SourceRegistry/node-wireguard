@@ -1,3 +1,10 @@
+## [1.0.5](https://github.com/SourceRegistry/node-wireguard/compare/v1.0.4...v1.0.5) (2026-06-26)
+
+
+### Bug Fixes
+
+* harden UAPI handling ([f5ac4d3](https://github.com/SourceRegistry/node-wireguard/commit/f5ac4d3ab1fcc342605d0b65b697faebd47cec50))
+
 ## [1.0.4](https://github.com/SourceRegistry/node-wireguard/compare/v1.0.3...v1.0.4) (2026-06-26)
 
 

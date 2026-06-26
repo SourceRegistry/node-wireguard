@@ -148,6 +148,7 @@ std::string BuildSetRequest(const wg::Config &cfg) {
             oss << "preshared_key=" << crypto::KeyToHex(*peer.presharedKey) << "\n";
         }
         if (peer.endpoint) {
+            netlink::ValidateEndpoint(*peer.endpoint);
             oss << "endpoint=" << *peer.endpoint << "\n";
         }
         if (peer.persistentKeepaliveInterval) {

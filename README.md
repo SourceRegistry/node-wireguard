@@ -6,7 +6,7 @@
 [![node engine](https://img.shields.io/node/v/@sourceregistry/node-wireguard.svg)](package.json)
 [![license](https://img.shields.io/npm/l/@sourceregistry/node-wireguard.svg)](LICENSE)
 
-Native Node.js (N-API) addon for managing WireGuard interfaces and peers on Linux, with a TypeScript API on top. Talks directly to the kernel's `wireguard` generic-netlink family, the same wire protocol [wgctrl-go](https://github.com/WireGuard/wgctrl-go)'s Linux backend uses, plus rtnetlink for interface lifecycle. No shelling out to `wg`/`ip`.
+Native Node.js addon for managing WireGuard interfaces and peers on Linux, with TypeScript types included. It talks directly to the kernel and to WireGuard userspace control sockets; it does not shell out to `wg` or `ip`.
 
 Built for [WireGuard](https://www.wireguard.com/), a registered trademark of Jason A. Donenfeld. This is an independent, unofficial project, not affiliated with or endorsed by the WireGuard project.
 
@@ -23,19 +23,29 @@ Built for [WireGuard](https://www.wireguard.com/), a registered trademark of Jas
 ## Requirements
 
 - Linux with the WireGuard kernel module/support loaded (`modprobe wireguard` or built-in).
-- Node.js 22 or newer. CI tests Node 22 for backward compatibility and Node 24 as the latest LTS line.
+- Node.js 22 or newer.
 - `CAP_NET_ADMIN` (typically: run as root) for `createDevice`/`deleteDevice`/`configureDevice`.
-- Build deps (only needed if no matching prebuild ships for your arch, see Packaging below): `libmnl-dev`, `libssl-dev`, `pkg-config`, a C++17 toolchain.
-- Runtime deps (always needed, even when using the shipped prebuild): `libmnl` and `libcrypto` (OpenSSL) shared libraries. Both are near-universally preinstalled on Linux (curl/ssh/apt depend on libcrypto) - if missing, install the equivalent of Debian/Ubuntu's `libmnl0`/`libssl3`. The addon dynamically links both; missing one fails with `ERR_DLOPEN_FAILED: <libname>.so.<N>: cannot open shared object file`.
+- Runtime libraries: `libmnl` and OpenSSL `libcrypto`.
+
+On Debian/Ubuntu, the runtime libraries are:
+
+```sh
+sudo apt-get install -y libmnl0 libssl3
+```
+
+If your platform does not have a prebuilt addon available, build the native addon from source after installing. In that case you also need:
+
+```sh
+sudo apt-get install -y build-essential pkg-config libmnl-dev libssl-dev
+```
 
 ## Install
 
 ```sh
-npm install
-npm run build
+npm install @sourceregistry/node-wireguard
 ```
 
-Or use the bundled `.devcontainer` (works on Windows too, via Docker Desktop/WSL2). See below.
+If a matching prebuild is available, install is quick and does not need a compiler. If not, run `npm rebuild @sourceregistry/node-wireguard` after installing with the build dependencies above available.
 
 ## Usage
 
@@ -71,12 +81,21 @@ More examples in [`examples/`](./examples): `list-devices`, `get-device`, `gener
 
 ## Caveats
 
-- Linux only (the UAPI backend means a wireguard-go *peer* anywhere works fine, but this addon itself only runs on Linux).
+- Linux only. You can connect to peers on any WireGuard implementation, but this addon itself runs on Linux.
 - UAPI socket lookup only checks `/var/run/wireguard/<name>.sock` - not `$XDG_RUNTIME_DIR/wireguard/` (which wgctrl-go's wguser backend also checks).
 - Route management (beyond the implicit route rtnetlink installs for an assigned address's own subnet) is left to the caller. Use `ip route` or rtnetlink directly for anything beyond that.
 - Calls on one `WireGuardClient` instance are serialized internally (queued, run one at a time in call order). Issuing several without awaiting each is safe but not parallel. Use separate instances if you want calls to actually run concurrently.
 
 ## Development
+
+Clone the repository, install dependencies, then build:
+
+```sh
+npm install
+npm run build
+```
+
+Useful commands:
 
 ```sh
 npm run build:cpp   # node-gyp rebuild
@@ -86,21 +105,21 @@ npm test            # node:test; kernel/UAPI-backed tests auto-skip unless root 
 
 A `.devcontainer` is included (Dockerfile + `devcontainer.json`, `capAdd: NET_ADMIN`) so the addon builds and the full test suite, including real interface create/configure/delete, runs the same way on Windows (via Docker Desktop/WSL2) as on Linux.
 
-## Packaging / CI
+## Prebuilds
 
-`npm run package` (`scripts/package/package.sh`) builds the addon and stages the compiled `.node` into `bin/<arch-triplet>/` (currently `x86_64-linux-gnu`, `aarch64-linux-gnu`), where `lib/binding.ts` looks for a prebuild when installed from npm. If no matching prebuild is present (e.g. an unpublished triplet), `npm install`'s `gypfile`-triggered `node-gyp rebuild` compiles it locally instead, and the loader falls back to that build automatically.
+Published packages may include native prebuilds in `bin/<arch-triplet>/`. When no matching prebuild exists for your system, rebuild the package locally with `npm rebuild @sourceregistry/node-wireguard`.
 
-`.github/workflows/ci.yml` runs on push/PR: installs native deps (`libmnl-dev`/`libssl-dev`), builds, typechecks, and runs the test suite as root with `modprobe wireguard` best-effort (kernel-backed tests self-skip if the module isn't available on the runner) - plus a separate job that stages a prebuild and runs `npm pack --dry-run` to catch packaging regressions.
+Maintainers can run `npm run package` to stage a local prebuild before packing or publishing.
 
-## Releasing
+## FAQ
 
-Releases are automated with [semantic-release](https://semantic-release.gitbook.io/) off [Conventional Commits](https://www.conventionalcommits.org/) (`fix:`, `feat:`, `feat!:`/`BREAKING CHANGE:`, etc.) - on every push to `main` (stable) or `alpha` (prerelease) that passes CI, the `release` job:
+### Do I need to allow npm install scripts?
 
-1. Determines the next version from commit messages since the last release.
-2. Builds the addon and runs `prepublishOnly` (`npm run package`) to stage the `bin/<triplet>/` prebuild into the tarball.
-3. Publishes to npm and pushes a GitHub release + tag + `CHANGELOG.md` update.
+No. The published package does not use an npm `install` lifecycle script, so package managers that warn about allowing scripts should not need any special approval for this package.
 
-Requires repo secrets `NPM_TOKEN` (npm publish) and the default `GITHUB_TOKEN` (release/tag/changelog commit). Only the runner's own architecture (`x86_64-linux-gnu` on GitHub-hosted `ubuntu-latest`) gets a prebuild this way - other architectures fall back to compiling from source on `npm install` (see Packaging above).
+Runtime libraries are checked when the package is loaded. If `libmnl` or OpenSSL `libcrypto` is missing, `require('@sourceregistry/node-wireguard')` will throw an error with the package names to install.
+
+If there is no prebuild for your platform, install the build dependencies and run `npm rebuild @sourceregistry/node-wireguard`.
 
 ## License
 

@@ -37,4 +37,9 @@ wg::AllowedIP ParseCIDR(const std::string &cidr);
 // AllowedIP -> "192.168.1.0/24" form.
 std::string FormatCIDR(const wg::AllowedIP &aip);
 
+// Validates the endpoint form accepted by the kernel path:
+// "192.0.2.1:51820" or "[2001:db8::1]:51820".
+// Throws std::invalid_argument on bad input.
+void ValidateEndpoint(const std::string &endpoint);
+
 } // namespace netlink

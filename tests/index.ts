@@ -183,7 +183,8 @@ function findUapiBinary(): string | undefined {
     return undefined;
 }
 
-const uapiBinary = process.platform === 'linux' && process.getuid?.() === 0 ? findUapiBinary() : undefined;
+const canTestUapi = process.platform === 'linux' && process.getuid?.() === 0 && fs.existsSync('/dev/net/tun');
+const uapiBinary = canTestUapi ? findUapiBinary() : undefined;
 
 (uapiBinary ? describe : describe.skip)('WireGuardClient UAPI backend (requires root + wireguard-go binary)', () => {
     const ifaceName = 'wg-uapi-test'; // must stay <= 15 chars (IFNAMSIZ-1) or TUN creation fails with EINVAL
@@ -233,5 +234,14 @@ const uapiBinary = process.platform === 'linux' && process.getuid?.() === 0 ? fi
         await client.configureDevice(ifaceName, { peers: [{ publicKey: peerKey, remove: true }] });
         const device3 = await client.device(ifaceName);
         assert.strictEqual(device3.peers.length, 0);
+    });
+
+    it('rejects endpoint values that would inject extra UAPI fields', async () => {
+        const peerKey = publicKey(generatePrivateKey());
+        await assert.rejects(() =>
+            client.configureDevice(ifaceName, {
+                peers: [{ publicKey: peerKey, endpoint: '127.0.0.1:51820\nreplace_peers=true' }],
+            }),
+        );
     });
 });

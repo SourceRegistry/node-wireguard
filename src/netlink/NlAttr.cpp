@@ -294,6 +294,10 @@ std::string FormatCIDR(const wg::AllowedIP &aip) {
     return aip.ip + "/" + std::to_string(aip.cidr);
 }
 
+void ValidateEndpoint(const std::string &endpoint) {
+    (void)ParseEndpoint(endpoint);
+}
+
 struct nlmsghdr *BuildGetDeviceMessage(char *buf, uint16_t familyId, unsigned int seq, const std::string &ifname) {
     helpers::ValidateIfName(ifname);
     auto *nlh = mnl_nlmsg_put_header(buf);

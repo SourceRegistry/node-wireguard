@@ -5,13 +5,17 @@
 #include <cerrno>
 #include <cstring>
 #include <dirent.h>
+#include <stdexcept>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <sys/time.h>
 #include <unistd.h>
 
 namespace uapi {
 
 const char *const kSocketDir = "/var/run/wireguard";
+constexpr size_t kMaxResponseBytes = 1024 * 1024;
+constexpr time_t kIoTimeoutSeconds = 5;
 
 namespace {
 
@@ -43,7 +47,15 @@ std::vector<std::string> ListInterfaceNames() {
     while ((entry = readdir(dir)) != nullptr) {
         std::string fname = entry->d_name;
         if (fname.size() > suffixLen && fname.compare(fname.size() - suffixLen, suffixLen, suffix) == 0) {
-            names.push_back(fname.substr(0, fname.size() - suffixLen));
+            std::string name = fname.substr(0, fname.size() - suffixLen);
+            try {
+                helpers::ValidateIfName(name);
+                names.push_back(name);
+            } catch (const std::invalid_argument &) {
+                // Ignore files that cannot be legitimate WireGuard interface
+                // control sockets. This keeps devices() from failing because
+                // of unrelated or malicious entries in the socket directory.
+            }
         }
     }
     closedir(dir);
@@ -56,6 +68,15 @@ std::string Transact(const std::string &name, const std::string &request) {
     int fd = socket(AF_UNIX, SOCK_STREAM, 0);
     if (fd < 0) {
         throw helpers::SystemError(errno, std::string("socket: ") + std::strerror(errno));
+    }
+
+    timeval timeout{};
+    timeout.tv_sec = kIoTimeoutSeconds;
+    if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0 ||
+        setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout)) < 0) {
+        int err = errno;
+        close(fd);
+        throw helpers::SystemError(err, std::string("setsockopt timeout: ") + std::strerror(err));
     }
 
     sockaddr_un addr{};
@@ -105,6 +126,10 @@ std::string Transact(const std::string &name, const std::string &request) {
         }
         if (n == 0) {
             break; // EOF - server closes after responding
+        }
+        if (response.size() + static_cast<size_t>(n) > kMaxResponseBytes) {
+            close(fd);
+            throw std::runtime_error("uapi response exceeded 1048576 bytes");
         }
         response.append(buf, static_cast<size_t>(n));
     }

@@ -1,3 +1,10 @@
+## [1.0.4](https://github.com/SourceRegistry/node-wireguard/compare/v1.0.3...v1.0.4) (2026-06-26)
+
+
+### Bug Fixes
+
+* remove install lifecycle script; move error detection to binding ([1054f49](https://github.com/SourceRegistry/node-wireguard/commit/1054f4993f3a0f76db05f7c04c86d95e234b439d))
+
 ## [1.0.3](https://github.com/SourceRegistry/node-wireguard/compare/v1.0.2...v1.0.3) (2026-06-24)
 
 
